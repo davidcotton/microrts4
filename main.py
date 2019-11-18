@@ -1,7 +1,5 @@
 import argparse
-import random
 
-import numpy as np
 from pycrorts3 import PycroRts3MultiAgentEnv, SquarePycroRts3MultiAgentEnv
 import ray
 from ray import tune
@@ -30,21 +28,8 @@ if __name__ == '__main__':
         }
     else:
         tune_config = {
-            # 'num_workers': 1,
-
-            'num_workers': 5,
-            # 'num_workers': 20,
+            'num_workers': 1,
             'num_gpus': 1,
-            # 'train_batch_size': 65536,
-            # 'sgd_minibatch_size': 4096,
-            # 'num_sgd_iter': 6,
-            # 'num_envs_per_worker': 32,
-            # 'num_envs_per_worker': 8,
-
-            'train_batch_size': 32000,
-            # 'train_batch_size': 64000,
-            # 'train_batch_size': 128000,
-            # 'train_batch_size': 480000,  # 20*8*3000 (workers * num_envs_per_wkr * max_steps_per_game)
         }
 
     env_config = {'map_filename': args.map}
@@ -73,13 +58,31 @@ if __name__ == '__main__':
     trainable_policies = {
         f'learned{i:02d}': (None, obs_space, action_space, {'model': model_config}) for i in range(args.num_learners)
     }
-    if args.policy == 'DQN':
+    if args.policy == 'PPO':
+        tune_config.update({
+            'lr': 0.001,
+            'gamma': 0.995,
+            'clip_param': 0.2,
+            'lambda': 0.95,
+            'kl_coeff': 1.0,
+
+            'num_workers': 5,
+            # 'num_workers': 20,
+            # 'num_envs_per_worker': 8,
+            'train_batch_size': 32000,
+            # 'train_batch_size': 64000,
+            # 'train_batch_size': 128000,
+            # 'train_batch_size': 480000,  # 20*8*3000 (workers * num_envs_per_wkr * max_steps_per_game)
+        })
+    elif args.policy in ['DQN', 'APEX']:
         tune_config.update({
             'hiddens': [],
             'dueling': False,
         })
-
-    player1, player2 = None, None
+        if args.policy == 'APEX':
+            tune_config.update({
+                'num_workers': 5,
+            })
 
     def random_policy_mapping_fn(agent_id):
         player_id, unit_id = agent_id.split('.')
@@ -87,12 +90,6 @@ if __name__ == '__main__':
             return 'learned00'
         else:
             return 'random'
-        # global player1, player2
-        # if agent_id == 0:
-        #     player1, player2 = random.sample([*trainable_policies], k=2)
-        #     return player1
-        # else:
-        #     return player2
 
     def name_trial(trial):
         """Give trials a more readable name in terminal & Tensorboard."""
@@ -111,11 +108,6 @@ if __name__ == '__main__':
         config=dict({
             'env': 'pycrorts',
             'env_config': env_config,
-            'lr': 0.001,
-            'gamma': 0.995,
-            'clip_param': 0.2,
-            'lambda': 0.95,
-            'kl_coeff': 1.0,
             'multiagent': {
                 'policies': {
                     **trainable_policies,
@@ -125,6 +117,6 @@ if __name__ == '__main__':
                 'policy_mapping_fn': random_policy_mapping_fn,
             },
         }, **tune_config),
-        # checkpoint_at_end=True,
+        checkpoint_at_end=True,
         restore=args.restore,
     )
