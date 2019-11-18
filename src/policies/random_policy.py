@@ -44,18 +44,15 @@ class RandomPolicy(Policy):
                 {"f1": [BATCH_SIZE, ...], "f2": [BATCH_SIZE, ...]}.
         """
 
-        actions = []
-        num_actions = self.action_space.n - 1  # last action is the "pass" action
+        num_actions = self.action_space.n
         board_start = self.action_space.n
         board_end = self.action_space.n + self.board_size
+        actions = []
         for obs in obs_batch:
             action_mask, board = obs[:board_start], obs[board_start:board_end]
-            current_player, player_id = obs[board_end:board_end + 1].item(), obs[board_end + 1:].item()
-            if current_player == player_id:
-                legal_actions = [i for i in range(num_actions) if action_mask[i]]
-                actions.append(random.choice(legal_actions))
-            else:
-                actions.append(num_actions)  # "pass" action
+            # player_id, resources, time = obs[-3], obs[-2], obs[-1]
+            legal_actions = [i for i in range(num_actions) if action_mask[i]]
+            actions.append(random.choice(legal_actions))
 
         return np.array(actions), state_batches, {}
 
