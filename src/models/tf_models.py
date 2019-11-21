@@ -25,12 +25,8 @@ class ParametricActionsMLP(DistributionalQModel, TFModelV2):
         self.register_variables(self.mlp.variables())
 
     def forward(self, input_dict, state, seq_lens):
-        print('\n\n')
-        print(input_dict)
-        print('\n\n')
-        obs = flatten(input_dict['obs']['board'])
         action_mask = tf.maximum(tf.log(input_dict['obs']['action_mask']), tf.float32.min)
-        model_out, _ = self.mlp({'obs': obs})
+        model_out, _ = self.mlp({'obs': flatten(input_dict['obs']['board'])})
         return action_mask + model_out, state
 
     def value_function(self):
