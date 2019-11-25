@@ -9,7 +9,7 @@ from ray.rllib.utils import try_import_tf
 tf = try_import_tf()
 
 
-class ParametricActionsMLP(DistributionalQModel, TFModelV2):
+class MaskedActionsMLP(DistributionalQModel, TFModelV2):
     """Tensorflow model that supports policy gradient and DQN policies."""
 
     def __init__(self, obs_space, action_space, num_outputs, model_config, name, **kwargs):
@@ -33,7 +33,7 @@ class ParametricActionsMLP(DistributionalQModel, TFModelV2):
         return self.mlp.value_function()
 
 
-class ParametricActionsCNN(DistributionalQModel, TFModelV2):
+class MaskedActionsCNN(DistributionalQModel, TFModelV2):
     """Tensorflow model that supports policy gradient and DQN policies.
 
     If `conv_filters` provided will generate CNN, otherwise MLP.

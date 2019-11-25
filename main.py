@@ -6,7 +6,7 @@ from ray import tune
 from ray.rllib.models import ModelCatalog
 from ray.tune.registry import register_env
 
-from src.models import ParametricActionsMLP, ParametricActionsCNN
+from src.models import MaskedActionsMLP, MaskedActionsCNN
 from src.policies import RandomPolicy
 
 
@@ -35,9 +35,9 @@ if __name__ == '__main__':
     env_config = {'map_filename': args.map}
     if args.use_cnn:
         env_cls = SquarePycroRts3MultiAgentEnv
-        ModelCatalog.register_custom_model('parametric_actions_model', ParametricActionsCNN)
+        ModelCatalog.register_custom_model('masked_actions_model', MaskedActionsCNN)
         model_config = {
-            'custom_model': 'parametric_actions_model',
+            'custom_model': 'masked_actions_model',
             'conv_filters': [[16, [2, 2], 1], [32, [2, 2], 1], [64, [3, 3], 2]],
             'conv_activation': 'leaky_relu',
             'fcnet_hiddens': [128, 128],
@@ -45,9 +45,9 @@ if __name__ == '__main__':
         }
     else:
         env_cls = PycroRts3MultiAgentEnv
-        ModelCatalog.register_custom_model('parametric_actions_model', ParametricActionsMLP)
+        ModelCatalog.register_custom_model('masked_actions_model', MaskedActionsMLP)
         model_config = {
-            'custom_model': 'parametric_actions_model',
+            'custom_model': 'masked_actions_model',
             'fcnet_hiddens': [128, 128],
             'fcnet_activation': 'leaky_relu',
         }
