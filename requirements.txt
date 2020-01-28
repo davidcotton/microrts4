@@ -5,5 +5,5 @@ ray[rllib, debug]==0.7.6
 requests
 scipy
 tensorboard==1.14.0
-tensorflow-gpu==1.14.0
+tensorflow-gpu==1.15.2
 -e git+ssh://git@github.com/davidcotton/pycrorts3@master#egg=pycrorts3
